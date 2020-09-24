@@ -107,10 +107,23 @@ class SDL2Renderer(ProgrammablePipelineRenderer):
         current_time = sdl2.SDL_GetTicks() / 1000.0
 
         if self._gui_time:
+            # print("1")
             self.io.delta_time = current_time - self._gui_time
         else:
+            # print("2")
             self.io.delta_time = 1. / 60.
+
+        if self.io.delta_time == 0.0:
+            self.io.delta_time = 1. / 60.
+
+        # print("")
+        # print(f"{self.io.delta_time:.32f}")
+        # print(f"{current_time:.32f}")
+        # if self._gui_time:
+        #     print(f"{self._gui_time:.32f}")
+
         self._gui_time = current_time
+
 
         mx = ctypes.pointer(ctypes.c_int(0))
         my = ctypes.pointer(ctypes.c_int(0))

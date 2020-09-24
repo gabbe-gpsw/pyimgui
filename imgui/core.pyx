@@ -23,7 +23,7 @@ except ImportError:
 from libc.stdlib cimport malloc, free
 from libc.stdint cimport uintptr_t
 from libc.string cimport strdup
-from libc.string cimport strncpy
+from libc.string cimport strncpy, strcpy, strlen
 from libc.float  cimport FLT_MAX
 from libcpp cimport bool
 
@@ -33,7 +33,7 @@ cimport enums
 from cpython.version cimport PY_MAJOR_VERSION
 
 # todo: find a way to cimport this directly from imgui.h
-DEF TARGET_IMGUI_VERSION = (1, 65)
+DEF TARGET_IMGUI_VERSION = (1, 77)
 
 cdef unsigned short* _LATIN_ALL = [0x0020, 0x024F , 0]
 
@@ -1485,8 +1485,23 @@ cdef class _IO(object):
         return self._ptr.IniFilename
 
     @ini_file_name.setter
-    def ini_file_name(self, char* value):
-        self._ptr.IniFilename = value
+    def ini_file_name(self, value):
+        cdef char *allocatedInitFilename
+        input_size = strlen(value) + 1
+        allocatedInitFilename = <char*> malloc(input_size);
+        strcpy(allocatedInitFilename, value);
+        self._ptr.IniFilename = allocatedInitFilename
+        
+#    @ini_file_name.setter
+#    def ini_file_name(self, value):
+#        cdef char *allocatedInitFilename
+#        input_size = strlen(value) + 1
+#        allocatedInitFilename = <char*> malloc(input_size);
+#        strcpy(allocatedInitFilename, value, input_size);
+#        self._ptr.IniFilename = allocatedInitFilename
+
+#        self._ini_file_name = value
+#        self._ptr.IniFilename = _bytes(self._ini_file_name)
 
     @property
     def log_file_name(self):
@@ -1576,22 +1591,6 @@ cdef class _IO(object):
         self._ptr.DisplayFramebufferScale = _cast_tuple_ImVec2(value)
 
     @property
-    def display_visible_min(self):
-        return _cast_ImVec2_tuple(self._ptr.DisplayVisibleMin)
-
-    @display_visible_min.setter
-    def display_visible_min(self,  value):
-        self._ptr.DisplayVisibleMin = _cast_tuple_ImVec2(value)
-
-    @property
-    def display_visible_max(self):
-        return _cast_ImVec2_tuple(self._ptr.DisplayVisibleMax)
-
-    @display_visible_max.setter
-    def display_visible_max(self,  value):
-        self._ptr.DisplayVisibleMax = _cast_tuple_ImVec2(value)
-
-    @property
     def config_mac_osx_behaviors(self):
         return self._ptr.ConfigMacOSXBehaviors
 
@@ -1607,13 +1606,14 @@ cdef class _IO(object):
     def config_cursor_blink(self, cimgui.bool value):
         self._ptr.ConfigInputTextCursorBlink = value
 
+# RENAME
     @property
     def config_resize_windows_from_edges(self):
-        return self._ptr.ConfigResizeWindowsFromEdges
+        return self._ptr.ConfigWindowsResizeFromEdges
 
     @config_resize_windows_from_edges.setter
     def config_resize_windows_from_edges(self, cimgui.bool value):
-        self._ptr.ConfigResizeWindowsFromEdges = value
+        self._ptr.ConfigWindowsResizeFromEdges = value
 
     @property
     def mouse_pos(self):
